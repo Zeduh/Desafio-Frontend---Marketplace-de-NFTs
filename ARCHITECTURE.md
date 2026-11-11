@@ -9,7 +9,7 @@
 - Socket.IO clients are created disconnected by `src/lib/realtime.ts`; features connect and release their own client lifecycle.
 - Tailwind CSS v4 is integrated through the Vite plugin. Reusable UI primitives live under `src/components/ui`.
 
-The Home route currently contains the structural sections from the supplied layer hierarchy: Top/Destaques, Products, Promos, and Blog. Its content placeholders are scaffolding, not a finished Figma interpretation. The page background `#140D0A` is the provided design token; each section will be refined in its own increment.
+The Home route follows the supplied desktop CSS and the separate mobile composition. Desktop Top uses the 1200px hero geometry, Roboto Mono, and the Portuguese headline “SEJA DONO DO FUTURO DA ARTE DIGITAL”; mobile Top uses its own collection search bar and Portuguese hero copy. The supplied NFT artwork is bundled locally as `src/assets/home-hero.png` and reused in both layouts. The Products, Promos, and Blog contents remain structural placeholders for later increments.
 
 ## Required stack adoption status
 

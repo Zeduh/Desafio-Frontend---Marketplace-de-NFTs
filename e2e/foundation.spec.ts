@@ -4,7 +4,11 @@ test("home inicia e responde pela API simulada", async ({ page }) => {
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "Destaques" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "SEJA DONO DO FUTURO DA ARTE DIGITAL",
+      exact: true,
+    }),
   ).toBeVisible();
 
   const healthResponse = await page.evaluate(async () => {

@@ -1,17 +1,22 @@
 @import "tailwindcss";
+@import "@fontsource/roboto-mono/latin-400.css";
+@import "@fontsource/roboto-mono/latin-500.css";
+@import "@fontsource/roboto-mono/latin-700.css";
 
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #f5f2ef;
+  --font-sans: "Roboto Mono", ui-monospace, monospace;
+  --font-mono: "Roboto Mono", ui-monospace, monospace;
+  --color-primary: #d28a4c;
   --color-primary-foreground: #140d0a;
   --color-muted: #211813;
-  --color-muted-foreground: #c9bdb5;
+  --color-muted-foreground: #cfb28c;
   --color-border: #34231b;
+  --color-foreground: #f5f1eb;
   --color-destructive: #b42318;
 }
 
 :root {
-  color: #f5f2ef;
+  color: #f5f1eb;
   background: #140d0a;
   font-family: var(--font-sans);
   font-synthesis: none;
@@ -52,13 +57,13 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid #2259da;
+  outline: 3px solid #e89b55;
   outline-offset: 3px;
 }
 
 ::selection {
-  color: #fff;
-  background: #2259da;
+  color: #140d0a;
+  background: #d28a4c;
 }
 
 @media (prefers-reduced-motion: reduce) {
