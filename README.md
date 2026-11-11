@@ -260,3 +260,28 @@ Documente os contratos REST e eventos, a política de sessão, o estado do carri
 Disponibilize comandos para desenvolvimento com mocks, build, preview, verificação de tipos, lint, testes Playwright e auditoria Lighthouse.
 
 A entrega deve executar a partir de um checkout limpo, sem depender de serviços privados ou do backend de produção.
+
+## Desenvolvimento local
+
+Requisitos: Node.js 22.12+ e npm.
+
+```powershell
+npm ci
+Copy-Item .env.example .env
+npm run dev
+```
+
+O MSW fica ativo por padrão; defina `VITE_ENABLE_MOCKS=false` para desativá-lo. `VITE_API_URL` configura o prefixo REST e `VITE_SOCKET_URL` configura o servidor Socket.IO.
+
+Comandos de verificação:
+
+```text
+npm run typecheck
+npm run lint
+npm run build
+npm run test:e2e:install
+npm run test:e2e
+npm run audit:lighthouse
+```
+
+O desenvolvimento segue TDD incremental: teste primeiro, implementação mínima, validação, revisão do diff e commit. Consulte [ARCHITECTURE.md](./ARCHITECTURE.md) para o fluxo e as decisões atuais.
