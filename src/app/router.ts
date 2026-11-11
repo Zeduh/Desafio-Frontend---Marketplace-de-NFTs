@@ -5,7 +5,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { AppShell } from "./AppShell";
-import { FoundationPage } from "../pages/FoundationPage";
+import { HomePage } from "../pages/HomePage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 
 interface RouterContext {
@@ -20,7 +20,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: FoundationPage,
+  component: HomePage,
 });
 
 const routeTree = rootRoute.addChildren([indexRoute]);

@@ -9,7 +9,24 @@
 - Socket.IO clients are created disconnected by `src/lib/realtime.ts`; features connect and release their own client lifecycle.
 - Tailwind CSS v4 is integrated through the Vite plugin. Reusable UI primitives live under `src/components/ui`.
 
-The current route is a temporary foundation screen that checks the mocked health endpoint. Its layout and colors are scaffolding, not a Figma interpretation; page styling will be replaced incrementally from the supplied design references.
+The Home route currently contains the structural sections from the supplied layer hierarchy: Top/Destaques, Products, Promos, and Blog. Its content placeholders are scaffolding, not a finished Figma interpretation. The page background `#140D0A` is the provided design token; each section will be refined in its own increment.
+
+## Required stack adoption status
+
+The challenge requires each listed technology to participate in the finished solution. The current foundation is intentionally incomplete; technologies are activated as their corresponding user flows are implemented rather than being added to static placeholders.
+
+| Technology | Current status | Planned feature use |
+| --- | --- | --- |
+| React and TypeScript | Used by the app and page components. | All screens and typed contracts. |
+| TanStack Router | Owns the Home route and app shell. | Search-state URLs, direct detail routes, and private routes. |
+| TanStack Query | Provider and cache policy are configured; business queries and mutations are not implemented yet. | Catalog, detail, session, cart, and other remote state. |
+| Axios and REST | The shared Axios client and MSW health handler exist; no business request is issued by the UI yet. | All feature REST requests must use the shared Axios client. |
+| Socket.IO | A disconnected client factory exists; no feature subscribes to events yet. | NFT price/availability and order updates, with the MSW Socket.IO binding. |
+| Tailwind CSS | Vite plugin and stylesheet import are active; the shared `Button` uses Tailwind utility classes, while the Home layout remains CSS-based. | Utility styling through the shared UI primitives and feature components. |
+| shadcn/ui | Source-based `Button` primitive is built on Radix Slot, CVA, and Tailwind, and is used by the keyboard-accessible skip link. | Extend with only the primitives required by the Figma flows. |
+| MSW | Browser worker and deterministic health handler are active. | Stateful REST and Socket.IO simulations for feature flows. |
+| Playwright | Home structure, background, and mocked health are covered by E2E tests. | Required journey, viewport, accessibility, and visual regression coverage. |
+| Lighthouse | CI configuration and command exist; the required audit has not been run yet. | Audit stable Home and NFT detail production builds on mobile and desktop. |
 
 ## Incremental TDD workflow
 

@@ -2,17 +2,17 @@
 
 @theme {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #202124;
-  --color-primary-foreground: #fff;
-  --color-muted: #f3f4f6;
-  --color-muted-foreground: #60636b;
-  --color-border: #e8e8eb;
+  --color-primary: #f5f2ef;
+  --color-primary-foreground: #140d0a;
+  --color-muted: #211813;
+  --color-muted-foreground: #c9bdb5;
+  --color-border: #34231b;
   --color-destructive: #b42318;
 }
 
 :root {
-  color: #202124;
-  background: #fff;
+  color: #f5f2ef;
+  background: #140d0a;
   font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -36,6 +36,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background: #140d0a;
 }
 
 button,
