@@ -18,6 +18,39 @@ test("home apresenta as seções na ordem definida pelo design", async ({ page }
   await expect(page.locator("html")).toHaveCSS("background-color", "rgb(20, 13, 10)");
 });
 
+test("promoções apresentam os cards estáticos do design e direcionam ao catálogo", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+
+  const promos = page.getByRole("region", { name: "Promoções" });
+  await expect(promos.getByRole("heading", { level: 3 })).toHaveText([
+    "Lançamentos gênesis de edição limitada",
+    "Arte digital selecionada e muito mais",
+  ]);
+  const promoArtworks = promos.getByRole("img");
+  await expect(promoArtworks).toHaveCount(2);
+  await expect(promoArtworks.nth(1)).toHaveAttribute("src", /neon-vessel/);
+  await expect(promoArtworks.nth(1)).toHaveCSS("border-top-right-radius", "18px");
+  await expect(promos.getByRole("link", { name: "Explorar" })).toHaveCount(2);
+  await expect(promos.getByRole("link", { name: "Explorar" }).first()).toHaveAttribute(
+    "href",
+    "#products",
+  );
+  await expect(promos.locator(".home-promo-card")).toHaveCount(2);
+
+  const cardBounds = await promos.locator(".home-promo-card").evaluateAll((cards) =>
+    cards.map((card) => {
+      const { x, y, width, height } = card.getBoundingClientRect();
+      return { x, y, width, height };
+    }),
+  );
+
+  expect(cardBounds[0].y).toBe(cardBounds[1].y);
+  expect(cardBounds[0].height).toBe(250);
+});
+
 test("Top desktop apresenta a navegação e o conteúdo exportados do Figma", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
@@ -32,7 +65,7 @@ test("Top desktop apresenta a navegação e o conteúdo exportados do Figma", as
   await expect(
     page.getByText(/Discover curated NFTs from emerging and established creators\./),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Explorar" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "EXPLORAR", exact: true })).toHaveAttribute(
     "href",
     "#products",
   );
@@ -90,7 +123,7 @@ test("Top mobile usa a barra de busca e o hero próprios do layout", async ({ pa
   await expect(
     page.getByText("Descubra NFTs selecionados de criadores do mundo todo."),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Explorar" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "EXPLORAR", exact: true })).toBeVisible();
   await expect(page.locator(".home-hero__cta-arrow")).toBeVisible();
   const featuredArtwork = page.locator(".home-hero__art-featured");
   await expect(featuredArtwork).toBeVisible();
@@ -111,6 +144,23 @@ test("Top mobile usa a barra de busca e o hero próprios do layout", async ({ pa
     .evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length);
 
   expect(productGridColumnCount).toBe(2);
+});
+
+test("promoções se organizam em uma coluna em telas estreitas", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const cards = page.locator(".home-promo-card");
+  await expect(cards).toHaveCount(2);
+  const cardBounds = await cards.evaluateAll((elements) =>
+    elements.map((element) => {
+      const { y, bottom } = element.getBoundingClientRect();
+      return { y, bottom };
+    }),
+  );
+
+  expect(cardBounds).toHaveLength(2);
+  expect(cardBounds[1].y).toBeGreaterThanOrEqual(cardBounds[0].bottom);
 });
 
 for (const width of [390, 768, 1440]) {

@@ -3,6 +3,7 @@ import { HomeSection } from "../components/home/HomeSection";
 import { HomeHero } from "../components/home/HomeHero";
 import { HomeSearchBar } from "../components/home/HomeSearchBar";
 import { HomeMobileNavigation } from "../components/home/HomeMobileNavigation";
+import { HomePromos } from "../components/home/HomePromos";
 import { ProductsSection } from "../components/home/ProductsSection";
 
 function PlaceholderGrid({ count, itemClassName }: { count: number; itemClassName: string }) {
@@ -28,9 +29,7 @@ export function HomePage() {
         onMobileFiltersOpenChange={setMobileFiltersOpen}
       />
 
-      <HomeSection id="promos" title="Promoções">
-        <div aria-hidden="true" className="home-placeholder home-placeholder--promo" />
-      </HomeSection>
+      <HomePromos />
 
       <HomeSection id="blog" title="Blog">
         <PlaceholderGrid count={3} itemClassName="home-placeholder--article" />
