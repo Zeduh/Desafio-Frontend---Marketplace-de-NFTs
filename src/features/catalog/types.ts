@@ -1,3 +1,5 @@
+export type NetworkName = "Ethereum" | "Polygon" | "Solana";
+
 export interface Product {
   id: string;
   name: string | null;
@@ -5,7 +7,7 @@ export interface Product {
   previousPrice?: string;
   artwork: string;
   collection: string;
-  network: string;
+  network: NetworkName;
   isNew: boolean;
   isTrending: boolean;
 }
@@ -50,6 +52,7 @@ export interface CatalogResponse {
   facets: {
     collections: CatalogFacet[];
     networks: CatalogFacet[];
+    tabs: Record<ProductTab, number>;
   };
 }
 

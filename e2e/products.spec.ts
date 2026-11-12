@@ -11,6 +11,10 @@ test("API simulada filtra e pagina o catálogo com metadados de facetas", async 
     const networkResponse = await fetch("/api/nfts?network=Polygon&pageSize=50");
     const collectionResponse = await fetch("/api/nfts?collection=Arte+digital&pageSize=50");
     const pageResponse = await fetch("/api/nfts?page=2&pageSize=9");
+    const priceSortedResponse = await fetch("/api/nfts?sort=price-low&pageSize=50");
+    const newTabResponse = await fetch(
+      "/api/nfts?collection=Arte+digital&network=Polygon&tab=new&pageSize=9",
+    );
     return {
       filtered: {
         status: filteredResponse.status,
@@ -18,6 +22,8 @@ test("API simulada filtra e pagina o catálogo com metadados de facetas", async 
       },
       network: await networkResponse.json(),
       collection: await collectionResponse.json(),
+      priceSorted: await priceSortedResponse.json(),
+      newTab: await newTabResponse.json(),
       page: {
         status: pageResponse.status,
         body: await pageResponse.json(),
@@ -52,6 +58,29 @@ test("API simulada filtra e pagina o catálogo com metadados de facetas", async 
         ).length,
     ),
   ).toBe(true);
+  expect(catalog.filtered.body.facets.tabs.all).toBe(catalog.filtered.body.total);
+  expect(catalog.filtered.body.facets.tabs.new).toBe(catalog.newTab.total);
+  expect(catalog.newTab.facets.tabs).toEqual(catalog.filtered.body.facets.tabs);
+  expect(catalog.network.items.every(
+    (product: { price: string | null }) =>
+      product.price === null || /^\d+\.\d{2}$/.test(product.price),
+  )).toBe(true);
+  const sortedPrices = catalog.priceSorted.items.map(
+    (product: { price: string | null }) =>
+      product.price === null ? Number.POSITIVE_INFINITY : Number(product.price),
+  );
+  expect(sortedPrices).toEqual([...sortedPrices].sort((first, second) => first - second));
+  const pricedProducts = catalog.priceSorted.items
+    .map((product: { price: string | null }) =>
+      product.price === null ? null : Number(product.price),
+    )
+    .filter((price: number | null): price is number => price !== null);
+  expect(pricedProducts.filter((price: number) => price >= 8)).toHaveLength(4);
+  expect(Math.max(...pricedProducts)).toBeGreaterThan(11);
+  expect(catalog.priceSorted.items.filter(
+    (product: { price: string | null; isNew: boolean; isTrending: boolean }) =>
+      Number(product.price) >= 8 && (product.isNew || product.isTrending),
+  )).toHaveLength(3);
   expect(catalog.page.status).toBe(200);
   expect(catalog.page.body.page).toBe(2);
   expect(catalog.page.body.items).toHaveLength(9);
@@ -68,7 +97,7 @@ test("Produtos desktop apresenta sidebar, destaque e grade paginada", async ({ p
   await expect(products.getByRole("list", { name: "NFTs" }).getByRole("listitem")).toHaveCount(
     9,
   );
-  await expect(products.getByRole("tab", { name: "Todos os NFTs" })).toHaveAttribute(
+  await expect(products.getByRole("tab", { name: /Todos os NFTs/ })).toHaveAttribute(
     "aria-selected",
     "true",
   );
@@ -219,18 +248,18 @@ test("abas, filtros e ordenação consultam o catálogo pela API", async ({ page
   const products = page.getByRole("region", { name: "Produtos" });
   const nftList = products.getByRole("list", { name: "NFTs" });
 
-  const newTab = products.getByRole("tab", { name: "Novos lançamentos" });
-  await products.getByRole("tab", { name: "Todos os NFTs" }).focus();
+  const newTab = products.getByRole("tab", { name: /Novos lançamentos/ });
+  await products.getByRole("tab", { name: /Todos os NFTs/ }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(newTab).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(newTab).toHaveAttribute("aria-selected", "true");
   await newTab.click();
-  await expect(products.getByRole("tab", { name: "Novos lançamentos" })).toHaveAttribute(
+  await expect(products.getByRole("tab", { name: /Novos lançamentos/ })).toHaveAttribute(
     "aria-selected",
     "true",
   );
-  await expect(products.getByRole("tab", { name: "Em alta" })).toHaveAttribute(
+  await expect(products.getByRole("tab", { name: /Em alta/ })).toHaveAttribute(
     "aria-selected",
     "false",
   );
@@ -240,17 +269,17 @@ test("abas, filtros e ordenação consultam o catálogo pela API", async ({ page
       name: "Página 2",
     }),
   ).toBeVisible();
-  await products.getByRole("tab", { name: "Em alta" }).click();
-  await expect(products.getByRole("tab", { name: "Novos lançamentos" })).toHaveAttribute(
+  await products.getByRole("tab", { name: /Em alta/ }).click();
+  await expect(products.getByRole("tab", { name: /Novos lançamentos/ })).toHaveAttribute(
     "aria-selected",
     "false",
   );
-  await expect(products.getByRole("tab", { name: "Em alta" })).toHaveAttribute(
+  await expect(products.getByRole("tab", { name: /Em alta/ })).toHaveAttribute(
     "aria-selected",
     "true",
   );
   await expect(nftList.getByRole("listitem")).toHaveCount(9);
-  await products.getByRole("tab", { name: "Todos os NFTs" }).click();
+  await products.getByRole("tab", { name: /Todos os NFTs/ }).click();
 
   const sortControl = products.getByRole("combobox", { name: "Ordenar por" });
   await sortControl.click();
@@ -262,6 +291,31 @@ test("abas, filtros e ordenação consultam o catálogo pela API", async ({ page
   );
   await products.getByRole("button", { name: /Música/ }).click();
   await expect(nftList.getByRole("listitem")).toHaveCount(4);
+});
+
+test("contadores das abas refletem a combinação de coleções selecionadas", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.goto("/");
+
+  const products = page.getByRole("region", { name: "Produtos" });
+  const allTab = products.getByRole("tab", { name: /^Todos os NFTs/ });
+  const newTab = products.getByRole("tab", { name: /^Novos lançamentos/ });
+  const trendingTab = products.getByRole("tab", { name: /^Em alta/ });
+  const filterPanel = products.getByRole("complementary", { name: "Filtros de produtos" });
+
+  await expect(allTab).toContainText("(36)");
+  await expect(newTab).toContainText("(17)");
+  await expect(trendingTab).toContainText("(14)");
+
+  await filterPanel.getByRole("button", { name: /Arte digital/ }).click();
+  await expect(allTab).toContainText("(7)");
+  await expect(newTab).toContainText("(4)");
+  await expect(trendingTab).toContainText("(3)");
+
+  await filterPanel.getByRole("button", { name: /Fotografia/ }).click();
+  await expect(allTab).toContainText("(13)");
+  await expect(newTab).toContainText("(7)");
+  await expect(trendingTab).toContainText("(6)");
 });
 
 test("busca desktop filtra pela API e atualiza o estado da URL", async ({ page }) => {
@@ -308,7 +362,7 @@ test("estado do catálogo é hidratado da URL e filtros reiniciam a página", as
   const filterPanel = products.getByRole("complementary", { name: "Filtros de produtos" });
   const pagination = products.getByRole("navigation", { name: "Paginação de produtos" });
 
-  await expect(products.getByRole("tab", { name: "Novos lançamentos" })).toHaveAttribute(
+  await expect(products.getByRole("tab", { name: /Novos lançamentos/ })).toHaveAttribute(
     "aria-selected",
     "true",
   );
@@ -355,6 +409,20 @@ test("estado do catálogo é hidratado da URL e filtros reiniciam a página", as
     "aria-current",
     "page",
   );
+});
+
+test("cards e filtro exibem preços em ETH independentemente da rede do NFT", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.goto("/");
+
+  const products = page.getByRole("region", { name: "Produtos" });
+  const nftList = products.getByRole("list", { name: "NFTs" });
+  await expect(nftList.getByText("1,19 ETH")).toBeVisible();
+  await expect(nftList.getByText("1,69 ETH")).toBeVisible();
+  await expect(nftList.getByText("1,99 ETH")).toBeVisible();
+  await expect(
+    products.getByText("Preço: 0,02 - 12,30 ETH"),
+  ).toBeVisible();
 });
 
 test("filtro de preço é somente leitura e aplica o intervalo do slider", async ({ page }) => {

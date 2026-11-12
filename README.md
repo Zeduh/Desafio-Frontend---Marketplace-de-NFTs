@@ -55,6 +55,8 @@ Páginas editoriais, suporte, atividade, ofertas e downloads não fazem parte da
 - O detalhe deve suportar acesso direto, NFT inexistente, edição indisponível e limite de quantidade.
 - Favoritos devem persistir para o usuário autenticado.
 
+No catálogo, os preços são apresentados, filtrados e ordenados em ETH, independentemente da rede em que o NFT existe. O filtro de rede indica a blockchain do ativo e não altera sua moeda de cotação.
+
 ### Carrinho
 
 - Adicionar, alterar e remover itens, respeitando a disponibilidade por NFT e edição.

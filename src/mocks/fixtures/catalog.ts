@@ -2,7 +2,7 @@ import goldenBeatArtwork from "../../assets/products/golden-beat.png";
 import neonVesselArtwork from "../../assets/products/neon-vessel.png";
 import sageNomadArtwork from "../../assets/products/sage-nomad.png";
 import heroArtwork from "../../assets/home-hero.png";
-import type { Product } from "../../features/catalog/types";
+import type { NetworkName, Product } from "../../features/catalog/types";
 
 export const collectionNames = [
   "Arte digital",
@@ -16,9 +16,9 @@ export const collectionNames = [
   "Utilidade",
 ];
 
-export const networkNames = ["Ethereum", "Polygon", "Solana"];
+export const networkNames: NetworkName[] = ["Ethereum", "Polygon", "Solana"];
 
-const suppliedProducts: Product[] = [
+const suppliedProductFixtures: Product[] = [
   {
     id: "emerald-ape-042",
     name: "Emerald Ape #042",
@@ -113,7 +113,7 @@ const suppliedProducts: Product[] = [
 ];
 
 const sampleArtwork = [heroArtwork, sageNomadArtwork, neonVesselArtwork, goldenBeatArtwork];
-const products = [...suppliedProducts];
+const products = [...suppliedProductFixtures];
 let sampleProductNumber = 201;
 const collectionTargets: Record<string, number> = {
   "Arte digital": 7,
@@ -127,16 +127,21 @@ const collectionTargets: Record<string, number> = {
   Utilidade: 3,
 };
 
-const addSampleProduct = (collection: string, network: string) => {
+const addSampleProduct = (collection: string, network: NetworkName) => {
   const artwork = sampleArtwork[sampleProductNumber % sampleArtwork.length];
   if (!artwork) {
     throw new Error("Não foi possível selecionar uma arte para o NFT de exemplo.");
   }
 
+  const sampleIndex = sampleProductNumber - 201;
+  const price = sampleIndex % 7 === 3
+    ? 8.5 + ((sampleProductNumber * 17) % 370) / 100
+    : 2.5 + ((sampleProductNumber * 17) % 380) / 100;
+
   products.push({
     id: `local-sample-${sampleProductNumber}`,
     name: `${collection} #${sampleProductNumber}`,
-    price: (2.5 + ((sampleProductNumber * 17) % 380) / 100).toFixed(2),
+    price: price.toFixed(2),
     artwork,
     collection,
     network,
@@ -172,8 +177,10 @@ for (const collection of collectionNames) {
 }
 
 export const catalogProducts: Product[] = products;
-export const featuredProduct = catalogProducts.find((product) => product.id === "sage-nomad-009");
+const featuredProductCandidate = catalogProducts.find((product) => product.id === "sage-nomad-009");
 
-if (!featuredProduct) {
+if (!featuredProductCandidate) {
   throw new Error("O NFT em destaque não está disponível na fixture do catálogo.");
 }
+
+export const featuredProduct: Product = featuredProductCandidate;

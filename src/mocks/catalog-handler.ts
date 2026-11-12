@@ -1,11 +1,17 @@
 import { HttpResponse, http } from "msw";
 import { apiBaseUrl } from "../lib/api-client";
-import type { CatalogFacet, Product, ProductTab, SortOrder } from "../features/catalog/types";
+import type {
+  CatalogFacet,
+  Product,
+  ProductTab,
+  SortOrder,
+} from "../features/catalog/types";
 import { catalogProducts, collectionNames, featuredProduct, networkNames } from "./fixtures/catalog";
 
 const DEFAULT_MIN_PRICE = "0.02";
 const DEFAULT_MAX_PRICE = "12.30";
 const MAX_PRICE = "20.00";
+const DEFAULT_MIN_PRICE_CENTS = 2n;
 const DEFAULT_MAX_PRICE_CENTS = 1230n;
 const PAGE_SIZE_MAX = 50;
 
@@ -18,6 +24,10 @@ function parseCents(value: string) {
   return BigInt(`${match[1]}${(match[2] ?? "").padEnd(2, "0")}`);
 }
 
+function getPriceCents(product: Product) {
+  return product.price === null ? null : parseCents(product.price);
+}
+
 function getFacetCounts(products: Product[], values: string[], property: "collection" | "network") {
   return values.map<CatalogFacet>((value) => ({
     value,
@@ -26,12 +36,12 @@ function getFacetCounts(products: Product[], values: string[], property: "collec
 }
 
 function matchesPriceRange(product: Product, minimum: bigint, maximum: bigint) {
-  if (product.price === null) {
-    return minimum === 2n && maximum >= 2000n;
+  const price = getPriceCents(product);
+  if (price === null) {
+    return minimum === DEFAULT_MIN_PRICE_CENTS && maximum >= DEFAULT_MAX_PRICE_CENTS;
   }
 
-  const price = parseCents(product.price);
-  return price !== null && price >= minimum && price <= maximum;
+  return price >= minimum && price <= maximum;
 }
 
 export const catalogHandler = http.get(`${apiBaseUrl}/nfts`, ({ request }) => {
@@ -55,7 +65,7 @@ export const catalogHandler = http.get(`${apiBaseUrl}/nfts`, ({ request }) => {
     minimum === null ||
     maximum === null ||
     maximumAllowed === null ||
-    minimum < 2n ||
+    minimum < DEFAULT_MIN_PRICE_CENTS ||
     maximum > maximumAllowed ||
     minimum > maximum ||
     !["recent", "price-low", "price-high"].includes(sort) ||
@@ -72,7 +82,8 @@ export const catalogHandler = http.get(`${apiBaseUrl}/nfts`, ({ request }) => {
   const networks = params.getAll("network");
   const selectedTab = tab as ProductTab;
   const sortOrder = sort as SortOrder;
-  const restrictedPrice = minimum > 2n || maximum < DEFAULT_MAX_PRICE_CENTS;
+  const restrictedPrice =
+    minimum > DEFAULT_MIN_PRICE_CENTS || maximum < DEFAULT_MAX_PRICE_CENTS;
 
   const matchesSearch = (product: Product) =>
     !query ||
@@ -84,35 +95,33 @@ export const catalogHandler = http.get(`${apiBaseUrl}/nfts`, ({ request }) => {
     selectedTab === "all" ||
     (selectedTab === "new" && product.isNew) ||
     (selectedTab === "trending" && product.isTrending);
-  const matchesBaseFilters = (product: Product) =>
-    matchesSearch(product) && matchesPrice(product) && matchesTab(product);
+  const matchesSearchAndPrice = (product: Product) =>
+    matchesSearch(product) && matchesPrice(product);
   const matchesCollection = (product: Product) =>
     collections.length === 0 || collections.includes(product.collection);
   const matchesNetwork = (product: Product) =>
     networks.length === 0 || networks.includes(product.network);
 
-  const baseFiltered = catalogProducts.filter(matchesBaseFilters);
+  const searchAndPriceFiltered = catalogProducts.filter(matchesSearchAndPrice);
+  const tabFacetProducts = searchAndPriceFiltered.filter(
+    (product) => matchesCollection(product) && matchesNetwork(product),
+  );
+  const baseFiltered = searchAndPriceFiltered.filter(matchesTab);
   const filtered = baseFiltered.filter(
     (product) => matchesCollection(product) && matchesNetwork(product),
   );
   const collectionFacetProducts = baseFiltered.filter(matchesNetwork);
   const networkFacetProducts = baseFiltered.filter(matchesCollection);
 
-  if (sortOrder === "price-low") {
+  if (sortOrder === "price-low" || sortOrder === "price-high") {
+    const direction = sortOrder === "price-low" ? 1 : -1;
     filtered.sort((first, second) => {
-      const firstPrice = first.price === null ? null : parseCents(first.price);
-      const secondPrice = second.price === null ? null : parseCents(second.price);
+      const firstPrice = getPriceCents(first);
+      const secondPrice = getPriceCents(second);
       if (firstPrice === null) return 1;
       if (secondPrice === null) return -1;
-      return firstPrice < secondPrice ? -1 : firstPrice > secondPrice ? 1 : 0;
-    });
-  } else if (sortOrder === "price-high") {
-    filtered.sort((first, second) => {
-      const firstPrice = first.price === null ? null : parseCents(first.price);
-      const secondPrice = second.price === null ? null : parseCents(second.price);
-      if (firstPrice === null) return 1;
-      if (secondPrice === null) return -1;
-      return firstPrice > secondPrice ? -1 : firstPrice < secondPrice ? 1 : 0;
+      if (firstPrice === secondPrice) return 0;
+      return firstPrice < secondPrice ? -direction : direction;
     });
   }
 
@@ -126,6 +135,11 @@ export const catalogHandler = http.get(`${apiBaseUrl}/nfts`, ({ request }) => {
     facets: {
       collections: getFacetCounts(collectionFacetProducts, collectionNames, "collection"),
       networks: getFacetCounts(networkFacetProducts, networkNames, "network"),
+      tabs: {
+        all: tabFacetProducts.length,
+        new: tabFacetProducts.filter((product) => product.isNew).length,
+        trending: tabFacetProducts.filter((product) => product.isTrending).length,
+      },
     },
   });
 });

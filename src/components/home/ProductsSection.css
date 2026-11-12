@@ -78,6 +78,7 @@
   justify-content: space-between;
   padding: 0;
   border: 0;
+  border-radius: 0;
   background: transparent;
   color: #cfb28c;
   cursor: pointer;
@@ -308,6 +309,15 @@
 
 .products-tab[aria-selected="true"] {
   color: #e89b55;
+}
+
+.products-tab__count {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.products-tab[aria-selected="true"] .products-tab__count {
+  opacity: 1;
 }
 
 .products-tab[aria-selected="true"]::after {
@@ -626,6 +636,10 @@
     padding-bottom: 5.5rem;
   }
 
+  .products-section {
+    min-width: 0;
+  }
+
   .products-sidebar {
     display: none;
   }
@@ -639,10 +653,24 @@
   }
 
   .products-toolbar {
+    width: 100%;
+    min-width: 0;
     min-height: 24px;
     flex-direction: row;
     align-items: center;
     overflow: hidden;
+  }
+
+  .products-tabs-root {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .products-toolbar .products-tabs {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .products-tabs {
