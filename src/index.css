@@ -8,10 +8,19 @@
   --font-mono: "Roboto Mono", ui-monospace, monospace;
   --color-primary: #d28a4c;
   --color-primary-foreground: #140d0a;
+  --color-background: #140d0a;
   --color-muted: #211813;
   --color-muted-foreground: #cfb28c;
+  --color-accent: #34231b;
+  --color-accent-foreground: #f5f1eb;
+  --color-secondary: #34231b;
+  --color-secondary-foreground: #f5f1eb;
   --color-border: #34231b;
+  --color-input: #34231b;
+  --color-ring: #e89b55;
   --color-foreground: #f5f1eb;
+  --color-popover: #211813;
+  --color-popover-foreground: #f5f1eb;
   --color-destructive: #b42318;
 }
 
