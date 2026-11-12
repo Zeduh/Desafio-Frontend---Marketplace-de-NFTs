@@ -1,5 +1,5 @@
-import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { useCatalogSearch } from "../../features/catalog/useCatalogSearch";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
@@ -8,8 +8,7 @@ interface HomeSearchBarProps {
 }
 
 export function HomeSearchBar({ onOpenFilters }: HomeSearchBarProps) {
-  const search = useSearch({ from: "/" });
-  const navigate = useNavigate({ from: "/" });
+  const { query, setQuery } = useCatalogSearch();
 
   return (
     <div aria-label="Busca de NFTs" className="home-mobile-search" role="search">
@@ -18,16 +17,9 @@ export function HomeSearchBar({ onOpenFilters }: HomeSearchBarProps) {
         <Input
           aria-label="Explorar coleções"
           className="home-mobile-search__input"
-          onChange={(event) => {
-            const q = event.currentTarget.value;
-            void navigate({
-              resetScroll: false,
-              replace: true,
-              search: (previous) => ({ ...previous, q: q || undefined, page: undefined }),
-            });
-          }}
+          onChange={(event) => setQuery(event.currentTarget.value)}
           placeholder="Explorar coleções"
-          value={search.q ?? ""}
+          value={query}
           type="search"
         />
       </div>
