@@ -5,8 +5,14 @@ import { Button } from "../components/ui/button";
 export function AppShell() {
   return (
     <div className="app-shell">
-      <Button asChild className="skip-link" variant="link">
-        <a href="#main-content">Pular para o conteúdo</a>
+      <Button
+        className="skip-link"
+        nativeButton={false}
+        render={<a href="#main-content" />}
+        role="link"
+        variant="link"
+      >
+        Pular para o conteúdo
       </Button>
       <SiteHeader />
       <main className="site-main" id="main-content">

@@ -39,8 +39,11 @@ test("Top desktop apresenta a navegação e o conteúdo exportados do Figma", as
   await expect(page.locator(".home-hero__cta-arrow")).toBeHidden();
   await expect(page.locator(".site-footer")).toHaveCount(0);
   await expect(page.locator(".home-hero__art")).toBeVisible();
+  await expect(page.locator(".home-hero__art-featured")).toBeHidden();
 
-  const heroArtwork = page.locator(".home-hero__art img");
+  const heroArtwork = page.getByRole("img", {
+    name: "Macaco com óculos escuros e jaqueta verde",
+  });
   await expect(heroArtwork).toBeVisible();
   await expect(heroArtwork).toHaveAttribute(
     "alt",
@@ -89,6 +92,14 @@ test("Top mobile usa a barra de busca e o hero próprios do layout", async ({ pa
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Explorar" })).toBeVisible();
   await expect(page.locator(".home-hero__cta-arrow")).toBeVisible();
+  const featuredArtwork = page.locator(".home-hero__art-featured");
+  await expect(featuredArtwork).toBeVisible();
+  expect(
+    await featuredArtwork.evaluate((element) => {
+      const { width, height } = element.getBoundingClientRect();
+      return { width, height };
+    }),
+  ).toEqual({ width: 42, height: 42 });
   await expect(page.locator(".site-footer")).toHaveCount(0);
   await expect(
     page.getByRole("navigation", { name: "Navegação principal" }),

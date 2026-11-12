@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { HomeSection } from "../components/home/HomeSection";
 import { HomeSearchBar } from "../components/home/HomeSearchBar";
+import { HomeMobileNavigation } from "../components/home/HomeMobileNavigation";
+import { ProductsSection } from "../components/home/ProductsSection";
 import { Button } from "../components/ui/button";
 import heroArtwork from "../assets/home-hero.png";
+import featuredArtwork from "../assets/products/sage-nomad.png";
 
 function PlaceholderGrid({ count, itemClassName }: { count: number; itemClassName: string }) {
   return (
@@ -35,13 +39,16 @@ function HomeHero() {
             <p className="home-hero__description home-hero__description--mobile">
               Descubra NFTs selecionados de criadores do mundo todo.
             </p>
-            <Button asChild className="home-hero__cta">
-              <a href="#products">
-                EXPLORAR
-                <span aria-hidden="true" className="home-hero__cta-arrow">
-                  →
-                </span>
-              </a>
+            <Button
+              className="home-hero__cta"
+              nativeButton={false}
+              render={<a href="#products" />}
+              role="link"
+            >
+              EXPLORAR
+              <span aria-hidden="true" className="home-hero__cta-arrow">
+                →
+              </span>
             </Button>
           </div>
           <div aria-hidden="true" className="home-hero__indicators">
@@ -52,6 +59,12 @@ function HomeHero() {
         </div>
         <div className="home-hero__art">
           <img alt="Macaco com óculos escuros e jaqueta verde" src={heroArtwork} />
+          <img
+            alt=""
+            aria-hidden="true"
+            className="home-hero__art-featured"
+            src={featuredArtwork}
+          />
         </div>
       </div>
     </section>
@@ -59,14 +72,17 @@ function HomeHero() {
 }
 
 export function HomePage() {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   return (
     <div className="home-page">
-      <HomeSearchBar />
+      <HomeSearchBar onOpenFilters={() => setMobileFiltersOpen(true)} />
       <HomeHero />
 
-      <HomeSection id="products" title="Produtos">
-        <PlaceholderGrid count={4} itemClassName="home-placeholder-card" />
-      </HomeSection>
+      <ProductsSection
+        mobileFiltersOpen={mobileFiltersOpen}
+        onMobileFiltersOpenChange={setMobileFiltersOpen}
+      />
 
       <HomeSection id="promos" title="Promoções">
         <div aria-hidden="true" className="home-placeholder home-placeholder--promo" />
@@ -75,6 +91,7 @@ export function HomePage() {
       <HomeSection id="blog" title="Blog">
         <PlaceholderGrid count={3} itemClassName="home-placeholder--article" />
       </HomeSection>
+      <HomeMobileNavigation />
     </div>
   );
 }
