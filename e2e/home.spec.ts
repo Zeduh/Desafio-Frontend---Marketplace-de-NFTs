@@ -13,9 +13,64 @@ test("home apresenta as seções na ordem definida pelo design", async ({ page }
   await expect(page.getByRole("heading", { level: 2 })).toHaveText([
     "Produtos",
     "Promoções",
-    "Blog",
+    "Diário da Cunhagem",
   ]);
   await expect(page.locator("html")).toHaveCSS("background-color", "rgb(20, 13, 10)");
+});
+
+test("blog reproduz os quatro cards fixos do Figma em uma grade responsiva", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+
+  const blog = page.getByRole("region", { name: "Diário da Cunhagem" });
+  await expect(blog.getByRole("heading", { level: 2 })).toHaveText("Diário da Cunhagem");
+  await expect(
+    blog.getByText(
+      "Histórias, guias e insights para colecionadores sobre o universo da propriedade digital.",
+    ),
+  ).toBeVisible();
+
+  const cards = blog.locator(".home-blog-card");
+  await expect(cards).toHaveCount(4);
+  await expect(cards.nth(0).getByRole("heading", { level: 3 })).toHaveText(
+    "Como funciona a propriedade de NFTs",
+  );
+  await expect(cards.nth(1).getByRole("heading", { level: 3 })).toHaveText(
+    "10 artistas digitais para acompanhar",
+  );
+  await expect(cards.nth(2).getByRole("heading", { level: 3 })).toHaveText(
+    "Raridade, atributos e procedência",
+  );
+  await expect(cards.nth(3).getByRole("heading", { level: 3 })).toHaveText(
+    "Como proteger sua carteira",
+  );
+  await expect(cards.nth(0).getByRole("img")).toHaveAttribute("src", /neon-vessel/);
+  await expect(cards.nth(1).getByRole("img")).toHaveAttribute("src", /home-hero/);
+  await expect(cards.nth(2).getByRole("img")).toHaveAttribute("src", /sage-nomad/);
+  await expect(cards.nth(3).getByRole("img")).toHaveAttribute("src", /golden-beat/);
+  await expect(blog.locator("a, button")).toHaveCount(0);
+
+  const firstCardBounds = await cards.nth(0).evaluate((card) => {
+    const { width, height } = card.getBoundingClientRect();
+    const image = card.querySelector("img");
+    return {
+      width,
+      height,
+      imageHeight: image?.getBoundingClientRect().height,
+    };
+  });
+  expect(firstCardBounds).toEqual({ width: 268, height: 369, imageHeight: 195 });
+
+  const desktopColumns = await blog
+    .locator(".home-blog__cards")
+    .evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(" ").length);
+  expect(desktopColumns).toBe(4);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileColumns = await blog
+    .locator(".home-blog__cards")
+    .evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(" ").length);
+  expect(mobileColumns).toBe(1);
 });
 
 test("promoções apresentam os cards estáticos do design e direcionam ao catálogo", async ({
@@ -138,12 +193,7 @@ test("Top mobile usa a barra de busca e o hero próprios do layout", async ({ pa
     page.getByRole("navigation", { name: "Navegação principal" }),
   ).toBeHidden();
 
-  const productGridColumnCount = await page
-    .locator(".home-placeholder-grid")
-    .first()
-    .evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length);
-
-  expect(productGridColumnCount).toBe(2);
+  await expect(page.getByRole("region", { name: "Diário da Cunhagem" })).toBeVisible();
 });
 
 test("promoções se organizam em uma coluna em telas estreitas", async ({ page }) => {
